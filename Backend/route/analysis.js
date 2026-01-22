@@ -13,4 +13,11 @@ route.get("/:id", async (req, res) => {
     //server error handling :here
   }
 });
+route.post("/", async (req, res) => {
+  try {
+    //create analysis logic will be here
+  } catch (err) {
+    //server error catch here
+  }
+});
 export default route;
