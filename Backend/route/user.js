@@ -31,4 +31,11 @@ route.put("/:id", async (req, res) => {
     //server error catch here
   }
 });
+route.delete("/:id", async (req, res) => {
+  try {
+    //delete user logic will be here
+  } catch (err) {
+    //server error catch here
+  }
+});
 export default route;
