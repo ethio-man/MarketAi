@@ -17,4 +17,11 @@ route.get("/:id", async (req, res) => {
   }
 });
 
+route.post("/", async (req, res) => {
+  try {
+    //create product logic here
+  } catch (err) {
+    //server error catch here
+  }
+});
 export default route;
