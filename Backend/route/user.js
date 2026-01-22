@@ -24,4 +24,11 @@ route.post("/", async (req, res) => {
     //server error will handled here
   }
 });
+route.put("/:id", async (req, res) => {
+  try {
+    //update user logic :here
+  } catch (err) {
+    //server error catch here
+  }
+});
 export default route;
