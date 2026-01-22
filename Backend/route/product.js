@@ -8,3 +8,13 @@ route.get("/", async (req, res) => {
     //server error catch here
   }
 });
+
+route.get("/:id", async (req, res) => {
+  try {
+    //find single product logic
+  } catch (err) {
+    //server error catch here
+  }
+});
+
+export default route;
