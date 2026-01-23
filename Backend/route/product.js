@@ -24,7 +24,14 @@ route.post("/", async (req, res) => {
     //server error catch here
   }
 });
-route.delete("/", async (req, res) => {
+route.put("/:id", async (req, res) => {
+  try {
+    //update product logic here
+  } catch (err) {
+    //catch server error here
+  }
+});
+route.delete("/:id", async (req, res) => {
   try {
     //delete product logic here
   } catch (err) {
