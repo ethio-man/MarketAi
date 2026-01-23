@@ -9,4 +9,11 @@ route.get("/", async (req, res) => {
   }
 });
 
+route.get("/:id", async (req, res) => {
+  try {
+    //get a caption logic here
+  } catch (err) {
+    //catch server error here
+  }
+});
 export default route;
