@@ -24,4 +24,11 @@ route.post("/", async (req, res) => {
     //server error catch here
   }
 });
+route.delete("/", async (req, res) => {
+  try {
+    //delete product logic here
+  } catch (err) {
+    //catch server error here
+  }
+});
 export default route;
