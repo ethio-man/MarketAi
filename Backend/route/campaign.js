@@ -10,4 +10,12 @@ route.get("/", async (req, res) => {
   }
 });
 
+route.get("/:id", async (req, res) => {
+  try {
+    //get a campaign logic here
+  } catch (err) {
+    //catch server error here
+  }
+});
+
 export default route;
