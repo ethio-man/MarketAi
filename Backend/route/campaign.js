@@ -32,4 +32,12 @@ route.put("/:id", async (req, res) => {
     //catch server error here
   }
 });
+
+route.delete("/:id", async (req, res) => {
+  try {
+    //remove campaign logic here
+  } catch (err) {
+    //catch server error here
+  }
+});
 export default route;
