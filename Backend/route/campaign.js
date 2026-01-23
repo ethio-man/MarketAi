@@ -18,4 +18,11 @@ route.get("/:id", async (req, res) => {
   }
 });
 
+route.post("/", async (req, res) => {
+  try {
+    //create campaign logic here
+  } catch (err) {
+    //catch server error here
+  }
+});
 export default route;
