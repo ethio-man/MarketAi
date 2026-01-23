@@ -16,4 +16,12 @@ route.get("/:id", async (req, res) => {
     //catch server error here
   }
 });
+
+route.post("/", async (req, res) => {
+  try {
+    //create a caption logic here
+  } catch (err) {
+    //catch server error here
+  }
+});
 export default route;
