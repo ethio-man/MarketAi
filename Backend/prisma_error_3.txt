@@ -1,0 +1,49 @@
+﻿node.exe : Environment 
+variables loaded from 
+.env
+At line:1 char:1
++ & "C:\nvm4w\nodejs/no
+de.exe" "C:\nvm4w\nodej
+s/node_modules/npm/bin/
+np ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Environment v   
+ ariables loaded fr    
+om .env:String) []    
+, RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "MarketAI", schema "public" at "localhost:5432"
+Error: ERROR: type 
+"vector" does not exist
+   0: sql_schema_connec
+tor::apply_migration::m
+igration_step
+           with 
+step=CreateTable { 
+table_id: TableId(5) }
+             at schema-
+engine\connectors\sql-s
+chema-connector\src\app
+ly_migration.rs:28
+   1: sql_schema_connec
+tor::apply_migration::a
+pply_migration
+             at schema-
+engine\connectors\sql-s
+chema-connector\src\app
+ly_migration.rs:11
+   2: schema_core::stat
+e::SchemaPush
+             at schema-
+engine\core\src\state.r
+s:545
+

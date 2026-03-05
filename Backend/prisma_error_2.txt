@@ -1,0 +1,31 @@
+﻿node.exe : Environment 
+variables loaded from 
+.env
+At line:1 char:1
++ & "C:\nvm4w\nodejs/no
+de.exe" "C:\nvm4w\nodej
+s/node_modules/npm/bin/
+np ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Environment v   
+ ariables loaded fr    
+om .env:String) []    
+, RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+Prisma schema loaded from prisma\schema.prisma
+Datasource "db": PostgreSQL database "MarketAI", schema "public" at "localhost:5432"
+
+ΓÜá∩╕Å  There might be data loss when applying the changes:
+
+  ΓÇó A unique constraint covering the columns `[email]` on the table `User` will be added. If there are existing duplicate values, this will fail.
+
+
+
