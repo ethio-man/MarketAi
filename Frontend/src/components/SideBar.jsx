@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Home,
   Bot,
@@ -13,12 +13,14 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
+  const location = useLocation();
+
   const navItems = [
-    { icon: Home, label: "Dashboard", path: "/", active: false },
-    { icon: Bot, label: "AI Assistant", path: "/assistant", active: true },
-    { icon: BarChart2, label: "Analytics", path: "/analytics", active: false },
-    { icon: ListChecks, label: "Campaigns", path: "/campaign", active: false },
-    { icon: Settings, label: "Settings", path: "/setting", active: false },
+    { icon: Home, label: "Dashboard", path: "/" },
+    { icon: Bot, label: "AI Assistant", path: "/assistant" },
+    { icon: BarChart2, label: "Analytics", path: "/analytics" },
+    { icon: ListChecks, label: "Campaigns", path: "/campaign" },
+    { icon: Settings, label: "Settings", path: "/setting" },
   ];
 
   return (
@@ -31,19 +33,27 @@ const Sidebar = () => {
 
         {/* Navigation */}
         <nav className="space-y-1">
-          {navItems.map((item) => (
-            <Link
-              to={`${item.path}`}
-              className={`flex items-center p-3 rounded-lg transition-colors duration-200 ${
-                item.active
-                  ? "bg-blue-50 text-indigo-700 font-semibold"
-                  : "text-gray-600 hover:bg-gray-50"
-              }`}
-            >
-              <item.icon className="mr-3" size={20} />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive =
+              item.path === "/"
+                ? location.pathname === "/"
+                : location.pathname.startsWith(item.path);
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center p-3 rounded-lg transition-colors duration-200 ${
+                  isActive
+                    ? "bg-blue-50 text-indigo-700 font-semibold"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <item.icon className="mr-3" size={20} />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
 

@@ -1,5 +1,7 @@
-import React from "react";
-import { Send, User, ChevronDown } from "lucide-react";
+import React, { useMemo, useRef, useState } from "react";
+import { Send, User } from "lucide-react";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 // Mock Component for user avatar
 const Avatar = ({ name, imageUrl, className = "w-10 h-10" }) => (
@@ -14,50 +16,103 @@ const Avatar = ({ name, imageUrl, className = "w-10 h-10" }) => (
   </div>
 );
 
+const formatTime = (date) =>
+  new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+
 const ChatInterface = () => {
-  // Mock data for the user (Abebe K.)
+  const bottomRef = useRef(null);
+  const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState("");
+
   const user = {
     name: "Abebe K.",
     email: "abebe@email.com",
-    avatar: "https://i.imgur.com/G7y25qB.png", // Replace with a placeholder or actual image URL
+    avatar: "https://i.imgur.com/G7y25qB.png",
   };
 
-  // Mock data for the AI (MarketMeda AI)
   const ai = {
     name: "MarketMeda AI",
-    avatar: "https://i.imgur.com/7gK5Y0o.png", // Replace with a placeholder or actual image URL
+    avatar: "https://i.imgur.com/7gK5Y0o.png",
   };
 
-  const aiMessage = {
-    title: "Option 1 (Focus on Heritage):",
-    content: (
-      <>
-        Awaken your senses with the authentic taste of Ethiopia. Our
-        **single-origin** coffee is grown in the ancient highlands and roasted
-        to perfection. Experience a tradition in every cup. ☕
-      </>
-    ),
-    hashtags: [
-      "#EthiopianCoffee",
-      "#SingleOrigin",
-      "#CoffeeLovers",
-      "#MadeInEthiopia",
+  const [messages, setMessages] = useState(() => [
+    {
+      role: "assistant",
+      text: "Hello! I'm MarketMeda AI. How can I help you grow your business today? You can ask me to generate a caption, analyze a product, or optimize pricing.",
+      time: formatTime(new Date()),
+    },
+  ]);
+
+  const quickPrompts = useMemo(
+    () => [
+      "Generate a social media caption for Ethiopian coffee.",
+      "Analyze this product's market potential in Addis Ababa.",
+      "Suggest a better pricing strategy for handmade crafts.",
     ],
-    time: "10:32 AM",
+    [],
+  );
+
+  const scrollToBottom = () => {
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    });
   };
 
-  const renderHashtags = (tags) => (
-    <div className="flex flex-wrap gap-2 mt-3">
-      {tags.map((tag) => (
-        <span
-          key={tag}
-          className="text-xs font-medium text-indigo-700 bg-indigo-100 px-3 py-1 rounded-full shadow-sm"
-        >
-          {tag}
-        </span>
-      ))}
-    </div>
-  );
+  const sendMessage = async (rawQuestion) => {
+    const question = rawQuestion.trim();
+    if (!question || isSending) return;
+
+    setError("");
+    const userMessage = {
+      role: "user",
+      text: question,
+      time: formatTime(new Date()),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsSending(true);
+    scrollToBottom();
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/ai/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+
+      const payload = await res.json();
+
+      if (!res.ok || !payload?.success) {
+        throw new Error(payload?.error || "Failed to get assistant response.");
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: payload.answer || "I could not generate a response right now.",
+          time: formatTime(new Date()),
+        },
+      ]);
+    } catch (err) {
+      setError(err.message || "Unable to connect to AI service.");
+    } finally {
+      setIsSending(false);
+      scrollToBottom();
+    }
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input);
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
@@ -91,97 +146,88 @@ const ChatInterface = () => {
 
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
-        {/* AI Initial Message */}
-        <div className="flex items-start">
-          <Avatar
-            name={ai.name}
-            imageUrl={ai.avatar}
-            className="w-8 h-8 mr-3"
-          />
-          <div>
-            <div className="text-xs text-gray-500 mb-1">
-              **{ai.name}** <span className="text-[10px]">10:30 AM</span>
-            </div>
-            <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100 max-w-xl">
-              <p className="text-gray-800">
-                Hello! I'm MarketMeda AI. How can I help you grow your business
-                today? You can ask me to generate a caption, analyze a product,
-                or optimize pricing.
-              </p>
-            </div>
-          </div>
-        </div>
+        {messages.map((message, index) => {
+          const isUser = message.role === "user";
 
-        {/* User Message */}
-        <div className="flex justify-end">
-          <div className="max-w-xl">
-            <div className="text-xs text-right text-gray-500 mb-1">
-              **{user.name}** <span className="text-[10px]">10:31 AM</span>
-            </div>
-            <div className="bg-blue-600 text-white p-3 rounded-xl rounded-br-sm shadow-lg">
-              Generate a social media caption for a new brand of Ethiopian
-              coffee.
-            </div>
-          </div>
-          <Avatar
-            name={user.name}
-            imageUrl={user.avatar}
-            className="w-8 h-8 ml-3"
-          />
-        </div>
+          return (
+            <div
+              key={`${message.time}-${index}`}
+              className={isUser ? "flex justify-end" : "flex items-start"}
+            >
+              {!isUser && (
+                <Avatar
+                  name={ai.name}
+                  imageUrl={ai.avatar}
+                  className="w-8 h-8 mr-3"
+                />
+              )}
 
-        {/* AI Response (Caption Options) */}
-        <div className="flex items-start">
-          <Avatar
-            name={ai.name}
-            imageUrl={ai.avatar}
-            className="w-8 h-8 mr-3"
-          />
-          <div>
-            <div className="text-xs text-gray-500 mb-1">
-              **{ai.name}** <span className="text-[10px]">10:32 AM</span>
-            </div>
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 max-w-2xl">
-              <p className="text-gray-800 mb-4">
-                Certainly! Here are a few options for your new brand of
-                Ethiopian coffee. I've also included some relevant hashtags and
-                a visual concept.
-              </p>
-
-              {/* Caption Option 1 */}
-              <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
-                <h4 className="font-bold text-sm text-gray-800 mb-2">
-                  {aiMessage.title}
-                </h4>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  {aiMessage.content}
-                </p>
-                {renderHashtags(aiMessage.hashtags)}
-
-                {/* Placeholder for visual concept */}
-                <div className="mt-4 h-32 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm">
-                  [Visual concept placeholder - e.g., A hand pouring coffee
-                  beans]
+              <div className={isUser ? "max-w-xl" : "max-w-2xl"}>
+                <div
+                  className={`text-xs text-gray-500 mb-1 ${
+                    isUser ? "text-right" : ""
+                  }`}
+                >
+                  <strong>{isUser ? user.name : ai.name}</strong>{" "}
+                  <span className="text-[10px]">{message.time}</span>
+                </div>
+                <div
+                  className={`p-4 rounded-xl shadow-sm border ${
+                    isUser
+                      ? "bg-blue-600 text-white border-blue-600 rounded-br-sm"
+                      : "bg-white text-gray-800 border-gray-100"
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap">{message.text}</p>
                 </div>
               </div>
+
+              {isUser && (
+                <Avatar
+                  name={user.name}
+                  imageUrl={user.avatar}
+                  className="w-8 h-8 ml-3"
+                />
+              )}
+            </div>
+          );
+        })}
+
+        {isSending && (
+          <div className="flex items-start">
+            <Avatar
+              name={ai.name}
+              imageUrl={ai.avatar}
+              className="w-8 h-8 mr-3"
+            />
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-gray-500 text-sm">
+              MarketMeda AI is thinking...
             </div>
           </div>
-        </div>
+        )}
+
+        {error && (
+          <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg p-3">
+            {error}
+          </div>
+        )}
+        <div ref={bottomRef} />
       </div>
 
       {/* Input / Footer Section */}
       <div className="p-4 bg-white border-t border-gray-200">
         {/* Quick Actions Buttons */}
-        <div className="flex space-x-3 mb-4">
-          <button className="text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full transition duration-150">
-            Generate caption
-          </button>
-          <button className="text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full transition duration-150">
-            Analyze product
-          </button>
-          <button className="text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full transition duration-150">
-            Optimize price
-          </button>
+        <div className="flex flex-wrap gap-3 mb-4">
+          {quickPrompts.map((prompt) => (
+            <button
+              key={prompt}
+              onClick={() => sendMessage(prompt)}
+              disabled={isSending}
+              className="text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full transition duration-150 disabled:opacity-50"
+            >
+              {prompt}
+            </button>
+          ))}
         </div>
 
         {/* Input Bar */}
@@ -189,9 +235,17 @@ const ChatInterface = () => {
           <input
             type="text"
             placeholder="Ask MarketMeda AI..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={onKeyDown}
             className="flex-1 p-3 pl-5 bg-transparent focus:outline-none text-gray-700"
+            disabled={isSending}
           />
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full m-1 transition duration-150">
+          <button
+            onClick={() => sendMessage(input)}
+            disabled={isSending || !input.trim()}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full m-1 transition duration-150 disabled:opacity-50"
+          >
             <Send size={20} />
           </button>
         </div>
