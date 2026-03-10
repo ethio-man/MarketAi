@@ -1,31 +1,39 @@
 // src/services/aiService.js
-// RAG-based AI Assistant using LangChain + Cohere
+// RAG-based AI Assistant using native Cohere AI SDK
 // Embeddings stored as JSON text, cosine similarity computed in-memory
-import { CohereEmbeddings, ChatCohere } from "@langchain/cohere";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { PromptTemplate } from "@langchain/core/prompts";
-import { StringOutputParser } from "@langchain/core/output_parsers";
+import { CohereClient } from "cohere-ai";
 import { prisma } from "../db/prisma.js";
 import { createError } from "../middleware/errorHandler.js";
 
-const embeddings = new CohereEmbeddings({
-  apiKey: process.env.COHERE_API_KEY,
-  model: "embed-english-v3.0",
+const cohere = new CohereClient({
+  token: process.env.COHERE_API_KEY,
 });
 
-const llm = new ChatCohere({
-  apiKey: process.env.COHERE_API_KEY,
-  model: "command-r-plus",
-  temperature: 0.2,
-});
+const EMBED_MODEL = "embed-english-v3.0";
+const CHAT_MODEL = "command-r-plus";
+const CHUNK_SIZE = 500;
+const CHUNK_OVERLAP = 50;
+const TOP_K = 5;
 
-/**
- * Compute cosine similarity between two vectors.
- */
+// ──────────────────────────────────────────────────────────────
+// Utility: split text into overlapping chunks
+// ──────────────────────────────────────────────────────────────
+function splitIntoChunks(text, chunkSize = CHUNK_SIZE, overlap = CHUNK_OVERLAP) {
+  const chunks = [];
+  let start = 0;
+  while (start < text.length) {
+    const end = Math.min(start + chunkSize, text.length);
+    chunks.push(text.slice(start, end).trim());
+    start += chunkSize - overlap;
+  }
+  return chunks.filter((c) => c.length > 0);
+}
+
+// ──────────────────────────────────────────────────────────────
+// Utility: cosine similarity between two vectors
+// ──────────────────────────────────────────────────────────────
 function cosineSimilarity(a, b) {
-  let dot = 0,
-    normA = 0,
-    normB = 0;
+  let dot = 0, normA = 0, normB = 0;
   for (let i = 0; i < a.length; i++) {
     dot += a[i] * b[i];
     normA += a[i] * a[i];
@@ -34,37 +42,38 @@ function cosineSimilarity(a, b) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-/**
- * Ingest text documents into the knowledge base.
- * Splits the content into chunks, embeds each chunk, and saves to PostgreSQL.
- */
+// ──────────────────────────────────────────────────────────────
+// Utility: embed a batch of texts using Cohere
+// ──────────────────────────────────────────────────────────────
+async function embedTexts(texts, inputType = "search_document") {
+  const response = await cohere.embed({
+    texts,
+    model: EMBED_MODEL,
+    inputType,
+    embeddingTypes: ["float"],
+  });
+  return response.embeddings.float;
+}
+
+// ──────────────────────────────────────────────────────────────
+// Ingest text documents into the knowledge base
+// ──────────────────────────────────────────────────────────────
 export const ingestDocument = async (content, metadata = {}) => {
   if (!content?.trim()) throw createError("Content is required", 400);
 
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 500,
-    chunkOverlap: 50,
-  });
+  const chunks = splitIntoChunks(content);
+  const embeddingVectors = await embedTexts(chunks, "search_document");
 
-  const chunks = await splitter.createDocuments([content]);
   const results = [];
-
-  for (const chunk of chunks) {
-    const [embedding] = await embeddings.embedDocuments([chunk.pageContent]);
-
+  for (let i = 0; i < chunks.length; i++) {
     const doc = await prisma.knowledgeDocument.create({
       data: {
-        content: chunk.pageContent,
+        content: chunks[i],
         metadata: JSON.stringify(metadata),
-        embedding: JSON.stringify(embedding),
+        embedding: JSON.stringify(embeddingVectors[i]),
       },
     });
-
-    results.push({
-      id: doc.id,
-      content: doc.content,
-      createdAt: doc.createdAt,
-    });
+    results.push({ id: doc.id, content: doc.content, createdAt: doc.createdAt });
   }
 
   return {
@@ -73,16 +82,16 @@ export const ingestDocument = async (content, metadata = {}) => {
   };
 };
 
-/**
- * Given a question, retrieve relevant context and generate an answer.
- */
+// ──────────────────────────────────────────────────────────────
+// Chat: retrieve relevant context, then generate an answer
+// ──────────────────────────────────────────────────────────────
 export const chat = async (question) => {
   if (!question?.trim()) throw createError("Question is required", 400);
 
   // 1. Embed the user question
-  const [queryEmbedding] = await embeddings.embedDocuments([question]);
+  const [queryEmbedding] = await embedTexts([question], "search_query");
 
-  // 2. Load all documents and compute cosine similarity in-memory
+  // 2. Load all docs and rank by cosine similarity
   const allDocs = await prisma.knowledgeDocument.findMany({
     select: { id: true, content: true, metadata: true, embedding: true },
   });
@@ -95,35 +104,31 @@ export const chat = async (question) => {
     };
   }
 
-  // 3. Score and sort by similarity
-  const scored = allDocs.map((doc) => {
-    const docEmbedding = JSON.parse(doc.embedding);
-    const similarity = cosineSimilarity(queryEmbedding, docEmbedding);
-    return { ...doc, similarity };
-  });
-
+  const scored = allDocs.map((doc) => ({
+    ...doc,
+    similarity: cosineSimilarity(queryEmbedding, JSON.parse(doc.embedding)),
+  }));
   scored.sort((a, b) => b.similarity - a.similarity);
-  const topDocs = scored.slice(0, 5);
+  const topDocs = scored.slice(0, TOP_K);
 
-  // 4. Build context from top documents
-  const context = topDocs.map((doc) => doc.content).join("\n\n---\n\n");
+  // 3. Build context string
+  const context = topDocs.map((d) => d.content).join("\n\n---\n\n");
 
-  // 5. Generate answer using RAG prompt
-  const promptTemplate = PromptTemplate.fromTemplate(`
-You are a helpful AI assistant for MarketAi, a powerful AI-powered marketing platform.
-Answer the user's question based ONLY on the provided context below.
+  // 4. Generate answer via Cohere Chat API
+  const response = await cohere.chat({
+    model: CHAT_MODEL,
+    temperature: 0.2,
+    message: question,
+    preamble: `You are a helpful AI assistant for MarketAi, a powerful AI-powered marketing platform.
+Answer the user's question based ONLY on the context below.
 If the context doesn't contain enough information to answer clearly, say so honestly.
 Be professional, concise, and helpful.
 
 Context:
-{context}
+${context}`,
+  });
 
-Question: {question}
-
-Answer:`);
-
-  const chain = promptTemplate.pipe(llm).pipe(new StringOutputParser());
-  const answer = await chain.invoke({ context, question });
+  const answer = response.text;
 
   return {
     answer,
@@ -134,9 +139,9 @@ Answer:`);
   };
 };
 
-/**
- * List all ingested knowledge documents.
- */
+// ──────────────────────────────────────────────────────────────
+// List all ingested knowledge documents
+// ──────────────────────────────────────────────────────────────
 export const listDocuments = async () => {
   return prisma.knowledgeDocument.findMany({
     select: { id: true, content: true, metadata: true, createdAt: true },
@@ -145,9 +150,9 @@ export const listDocuments = async () => {
   });
 };
 
-/**
- * Delete a knowledge document by ID.
- */
+// ──────────────────────────────────────────────────────────────
+// Delete a knowledge document by ID
+// ──────────────────────────────────────────────────────────────
 export const deleteDocument = async (id) => {
   const doc = await prisma.knowledgeDocument.findUnique({ where: { id } });
   if (!doc) throw createError("Document not found", 404);

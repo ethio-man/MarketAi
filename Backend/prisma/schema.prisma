@@ -57,7 +57,7 @@ model KnowledgeDocument {
   id        String   @id @default(uuid())
   content   String
   metadata  String?
-  embedding String   // JSON serialized float array from OpenAI embeddings
+  embedding String   // JSON serialized float array from Cohere embeddings
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
