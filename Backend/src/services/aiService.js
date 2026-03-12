@@ -10,7 +10,7 @@ const cohere = new CohereClient({
 });
 
 const EMBED_MODEL = "embed-english-v3.0";
-const CHAT_MODEL = "command-r-plus";
+const CHAT_MODEL = "command-r-plus-08-2024";
 const CHUNK_SIZE = 500;
 const CHUNK_OVERLAP = 50;
 const TOP_K = 5;
@@ -96,33 +96,29 @@ export const chat = async (question) => {
     select: { id: true, content: true, metadata: true, embedding: true },
   });
 
-  if (allDocs.length === 0) {
-    return {
-      answer:
-        "I don't have information on that topic yet. Please contact support or check the documentation.",
-      sources: [],
-    };
+  let context = "";
+  let topDocs = [];
+
+  if (allDocs.length > 0) {
+    const scored = allDocs.map((doc) => ({
+      ...doc,
+      similarity: cosineSimilarity(queryEmbedding, JSON.parse(doc.embedding)),
+    }));
+    scored.sort((a, b) => b.similarity - a.similarity);
+    topDocs = scored.slice(0, TOP_K);
+
+    // 3. Build context string
+    context = topDocs.map((d) => d.content).join("\n\n---\n\n");
   }
-
-  const scored = allDocs.map((doc) => ({
-    ...doc,
-    similarity: cosineSimilarity(queryEmbedding, JSON.parse(doc.embedding)),
-  }));
-  scored.sort((a, b) => b.similarity - a.similarity);
-  const topDocs = scored.slice(0, TOP_K);
-
-  // 3. Build context string
-  const context = topDocs.map((d) => d.content).join("\n\n---\n\n");
 
   // 4. Generate answer via Cohere Chat API
   const response = await cohere.chat({
     model: CHAT_MODEL,
-    temperature: 0.2,
+    temperature: 0.5,
     message: question,
     preamble: `You are a helpful AI assistant for MarketAi, a powerful AI-powered marketing platform.
-Answer the user's question based ONLY on the context below.
-If the context doesn't contain enough information to answer clearly, say so honestly.
-Be professional, concise, and helpful.
+If context is provided below, use it to ground your answer.
+If the context is empty or doesn't contain enough information, use your general knowledge to provide a professional, concise, and helpful response.
 
 Context:
 ${context}`,
