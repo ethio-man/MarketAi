@@ -36,7 +36,8 @@ const ChatInterface = () => {
 
   const ai = {
     name: "MarketMeda AI",
-    avatar: "https://i.imgur.com/7gK5Y0o.png",
+    avatar:
+      "https://i.pinimg.com/736x/15/34/92/153492d5cc36e23919920d27ab4b08cc.jpg",
   };
 
   const [messages, setMessages] = useState(() => [
