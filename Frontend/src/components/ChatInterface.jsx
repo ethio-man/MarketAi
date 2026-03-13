@@ -31,7 +31,8 @@ const ChatInterface = () => {
   const user = {
     name: "Abebe K.",
     email: "abebe@email.com",
-    avatar: "https://i.imgur.com/G7y25qB.png",
+    avatar:
+      "https://tse4.mm.bing.net/th/id/OIP.StC6nCSVINVtrPQOEPUF5QAAAA?cb=ucfimg2&ucfimg=1&w=300&h=359&rs=1&pid=ImgDetMain&o=7&rm=3",
   };
 
   const ai = {
