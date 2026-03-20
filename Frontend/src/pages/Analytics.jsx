@@ -2,6 +2,7 @@ import React from "react";
 import Sidebar from "../components/SideBar.jsx";
 import Analysis from "../components/Analysis.jsx";
 function Analytics() {
+  //analysis 
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar />
