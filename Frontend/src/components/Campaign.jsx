@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
-// --- Hashtag Helper Component ---
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 const Hashtag = ({ tag, isPrimary = false, isSecondary = false }) => {
   let classes = "px-3 py-1 text-sm rounded-full font-medium transition";
 
@@ -17,8 +18,11 @@ const Hashtag = ({ tag, isPrimary = false, isSecondary = false }) => {
 
 // --- Campaign Builder Content Component ---
 const CampaignBuilder = () => {
-  const [language, setLanguage] = useState("Afaan Oromo");
+  const [product, setProduct] = useState("");
+  const [brand, setBrand] = useState("");
+  const [language, setLanguage] = useState("English");
   const [tone, setTone] = useState("Persuasive");
+  const [caption, setCaption] = useState("");
 
   const LanguageButton = ({ lang }) => (
     <button
@@ -32,7 +36,39 @@ const CampaignBuilder = () => {
       {lang}
     </button>
   );
+  const sendMessage = async () => {
+    const question = {
+      product_name: product,
+      brand,
+      caption_language: language,
+      tone,
+    };
 
+    if (!question || isSending) return;
+
+    setError("");
+    setIsSending(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/ai/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+
+      const payload = await res.json();
+
+      if (!res.ok || !payload?.success) {
+        throw new Error(payload?.error || "Failed to get assistant response.");
+      }
+      const cap =
+        payload.answer || "I could not generate a response right now.";
+      setCaption(cap);
+    } catch (err) {
+      setError(err.message || "Unable to connect to AI service.");
+    } finally {
+      setIsSending(false);
+    }
+  };
   const ToneButton = ({ t }) => (
     <button
       className={`px-4 py-2 text-sm rounded-lg transition ${
