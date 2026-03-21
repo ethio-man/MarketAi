@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://ai-marketer-rouge.vercel.app/";
+const BASE_URL = "http://localhost:4000"; //https://ai-marketer-rouge.vercel.app/
 
 const axiosClient = axios.create({
   baseURL: BASE_URL,

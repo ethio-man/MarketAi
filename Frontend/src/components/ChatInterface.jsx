@@ -52,7 +52,7 @@ const ChatInterface = () => {
   const quickPrompts = useMemo(
     () => [
       "Generate a social media caption for Ethiopian coffee.",
-      "Analyze this product's market potential in Addis Ababa.",
+      "Which products have high market potential in Addis Ababa.",
       "Suggest a better pricing strategy for handmade crafts.",
     ],
     [],

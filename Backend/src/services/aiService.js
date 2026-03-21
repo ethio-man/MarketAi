@@ -18,7 +18,11 @@ const TOP_K = 5;
 // ──────────────────────────────────────────────────────────────
 // Utility: split text into overlapping chunks
 // ──────────────────────────────────────────────────────────────
-function splitIntoChunks(text, chunkSize = CHUNK_SIZE, overlap = CHUNK_OVERLAP) {
+function splitIntoChunks(
+  text,
+  chunkSize = CHUNK_SIZE,
+  overlap = CHUNK_OVERLAP,
+) {
   const chunks = [];
   let start = 0;
   while (start < text.length) {
@@ -29,11 +33,12 @@ function splitIntoChunks(text, chunkSize = CHUNK_SIZE, overlap = CHUNK_OVERLAP) 
   return chunks.filter((c) => c.length > 0);
 }
 
-// ──────────────────────────────────────────────────────────────
 // Utility: cosine similarity between two vectors
-// ──────────────────────────────────────────────────────────────
+
 function cosineSimilarity(a, b) {
-  let dot = 0, normA = 0, normB = 0;
+  let dot = 0,
+    normA = 0,
+    normB = 0;
   for (let i = 0; i < a.length; i++) {
     dot += a[i] * b[i];
     normA += a[i] * a[i];
@@ -42,9 +47,8 @@ function cosineSimilarity(a, b) {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
-// ──────────────────────────────────────────────────────────────
 // Utility: embed a batch of texts using Cohere
-// ──────────────────────────────────────────────────────────────
+
 async function embedTexts(texts, inputType = "search_document") {
   const response = await cohere.embed({
     texts,
@@ -55,9 +59,7 @@ async function embedTexts(texts, inputType = "search_document") {
   return response.embeddings.float;
 }
 
-// ──────────────────────────────────────────────────────────────
 // Ingest text documents into the knowledge base
-// ──────────────────────────────────────────────────────────────
 export const ingestDocument = async (content, metadata = {}) => {
   if (!content?.trim()) throw createError("Content is required", 400);
 
@@ -73,18 +75,21 @@ export const ingestDocument = async (content, metadata = {}) => {
         embedding: JSON.stringify(embeddingVectors[i]),
       },
     });
-    results.push({ id: doc.id, content: doc.content, createdAt: doc.createdAt });
+    results.push({
+      id: doc.id,
+      content: doc.content,
+      createdAt: doc.createdAt,
+    });
   }
 
   return {
-    message: `✅ Ingested ${results.length} chunk(s)`,
+    message: ` Ingested ${results.length} chunk(s)`,
     documents: results,
   };
 };
 
-// ──────────────────────────────────────────────────────────────
 // Chat: retrieve relevant context, then generate an answer
-// ──────────────────────────────────────────────────────────────
+
 export const chat = async (question) => {
   if (!question?.trim()) throw createError("Question is required", 400);
 
@@ -135,9 +140,8 @@ ${context}`,
   };
 };
 
-// ──────────────────────────────────────────────────────────────
 // List all ingested knowledge documents
-// ──────────────────────────────────────────────────────────────
+
 export const listDocuments = async () => {
   return prisma.knowledgeDocument.findMany({
     select: { id: true, content: true, metadata: true, createdAt: true },
@@ -146,9 +150,8 @@ export const listDocuments = async () => {
   });
 };
 
-// ──────────────────────────────────────────────────────────────
 // Delete a knowledge document by ID
-// ──────────────────────────────────────────────────────────────
+
 export const deleteDocument = async (id) => {
   const doc = await prisma.knowledgeDocument.findUnique({ where: { id } });
   if (!doc) throw createError("Document not found", 404);
