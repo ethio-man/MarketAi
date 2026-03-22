@@ -1,28 +1,95 @@
-import React, { useState } from "react";
-import { Bell, User, Sun, Moon } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Bell, User, Sun, Moon, Camera, Loader2 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const SettingsPage = () => {
+  const { user, token, updateUser } = useAuth();
   const [profile, setProfile] = useState({
-    fullName: "Abebe Bikila",
-    email: "abebe.bikila@email.com",
-    businessName: "Bikila's Digital Marketing",
-    businessType: "E-commerce",
+    name: "",
+    businessType: "Retail",
     language: "English",
     theme: "Light",
   });
+  
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        name: user.name || "",
+        businessType: user.businessType || "",
+        language: "English",
+        theme: "Light",
+      });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    console.log("Saving changes:", profile);
-    // Add API call logic here
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const res = await fetch("http://localhost:4000/api/users/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: profile.name,
+          businessType: profile.businessType,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        updateUser(data.data); // Update context
+      } else {
+        alert(data.error || "Failed to update profile");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred while saving profile.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const dummyAvatar =
-    "https://tse4.mm.bing.net/th/id/OIP.StC6nCSVINVtrPQOEPUF5QAAAA?cb=ucfimg2&ucfimg=1&w=300&h=359&rs=1&pid=ImgDetMain&o=7&rm=3"; // Placeholder for the avatar
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      setIsUploading(true);
+      const res = await fetch("http://localhost:4000/api/users/me/avatar", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        updateUser({ avatarUrl: data.data.avatarUrl });
+      } else {
+        alert(data.error || "Failed to upload avatar");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during upload.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const displayAvatar = user?.avatarUrl || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User");
 
   // Utility component for form rows
   const FormRow = ({ label, children }) => (
@@ -42,9 +109,9 @@ const SettingsPage = () => {
             size={24}
             className="text-gray-600 cursor-pointer hover:text-blue-600"
           />
-          <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+          <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden border border-gray-200">
             <img
-              src={dummyAvatar}
+              src={displayAvatar}
               alt="User"
               className="w-full h-full object-cover"
             />
@@ -61,19 +128,36 @@ const SettingsPage = () => {
           </h3>
 
           <div className="flex items-center space-x-6 mb-8">
-            <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden border-4 border-gray-100 shadow">
-              <img
-                src="https://tse4.mm.bing.net/th/id/OIP.StC6nCSVINVtrPQOEPUF5QAAAA?cb=ucfimg2&ucfimg=1&w=300&h=359&rs=1&pid=ImgDetMain&o=7&rm=3"
-                alt="Abebe Bikila"
-                className="w-full h-full object-cover"
-              />
+            <div className="relative w-20 h-20 rounded-full bg-gray-200 overflow-hidden border-4 border-gray-100 shadow flex items-center justify-center">
+              {isUploading ? (
+                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              ) : (
+                <img
+                  src={displayAvatar}
+                  alt={user?.name || "User"}
+                  className="w-full h-full object-cover"
+                />
+              )}
             </div>
             <div>
-              <p className="text-lg font-bold text-gray-900">Abebe Bikila</p>
-              <p className="text-sm text-gray-500">abebe.bikila@email.com</p>
+              <p className="text-lg font-bold text-gray-900">{user?.name || "Your Name"}</p>
+              <p className="text-sm text-gray-500">{user?.email || "your.email@example.com"}</p>
             </div>
-            <button className="ml-auto text-blue-600 hover:text-blue-700 text-sm font-medium p-2 px-4 rounded-md border border-gray-300 transition-colors">
-              Upload new picture
+            
+            <input 
+               type="file" 
+               accept="image/*" 
+               ref={fileInputRef} 
+               onChange={handleAvatarUpload} 
+               className="hidden" 
+            />
+            <button 
+                disabled={isUploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="ml-auto flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium p-2 px-4 rounded-md border border-gray-300 transition-colors disabled:text-gray-400 disabled:border-gray-200"
+            >
+              <Camera size={16} />
+              {isUploading ? "Uploading..." : "Upload picture"}
             </button>
           </div>
 
@@ -81,8 +165,8 @@ const SettingsPage = () => {
             <FormRow label="Full Name">
               <input
                 type="text"
-                name="fullName"
-                value={profile.fullName}
+                name="name"
+                value={profile.name}
                 onChange={handleChange}
                 className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
               />
@@ -92,14 +176,11 @@ const SettingsPage = () => {
                 <input
                   type="email"
                   name="email"
-                  value={profile.email}
-                  onChange={handleChange}
+                  value={user?.email || ""}
                   readOnly
-                  className="p-2 border border-gray-300 bg-gray-50 rounded-md w-full"
+                  className="p-2 border border-gray-300 bg-gray-50 text-gray-500 rounded-md w-full cursor-not-allowed"
+                  title="Email cannot be changed directly"
                 />
-                <button className="absolute right-0 mr-2 text-blue-600 hover:text-blue-700 text-sm font-medium">
-                  Change Password
-                </button>
               </div>
             </FormRow>
           </div>
@@ -111,23 +192,21 @@ const SettingsPage = () => {
             Business Details
           </h3>
           <div className="flex space-x-6">
-            <FormRow label="Business Name">
-              <input
-                type="text"
-                name="businessName"
-                value={profile.businessName}
-                onChange={handleChange}
-                className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-            </FormRow>
             <FormRow label="Business Type / Industry">
-              <input
-                type="text"
+              <select
                 name="businessType"
                 value={profile.businessType}
                 onChange={handleChange}
-                className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-gray-900 appearance-none bg-white pr-8"
+              >
+                <option value="">Select industry</option>
+                <option value="Retail">Retail</option>
+                <option value="Service">Service</option>
+                <option value="Manufacturing">Manufacturing</option>
+                <option value="Software">Software</option>
+                <option value="Food & Beverage">Food & Beverage</option>
+                <option value="Other">Other</option>
+              </select>
             </FormRow>
           </div>
         </div>
@@ -195,9 +274,11 @@ const SettingsPage = () => {
           </button>
           <button
             onClick={handleSave}
-            className="bg-blue-600 text-white hover:bg-blue-700 p-2 px-6 rounded-md font-semibold transition-colors"
+            disabled={isSaving}
+            className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 p-2 px-6 rounded-md font-semibold transition-colors disabled:bg-blue-400"
           >
-            Save Changes
+            {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isSaving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </footer>

@@ -11,9 +11,13 @@ import {
   LogOut,
   Coffee,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const Sidebar = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
+  
+  const displayAvatar = user?.avatarUrl || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User");
 
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/" },
@@ -81,11 +85,25 @@ const Sidebar = () => {
             <HelpCircle size={20} className="mr-3" />
             <span>Help</span>
           </div>
-          <div className="flex items-center text-gray-600 hover:text-indigo-600 cursor-pointer p-1 transition duration-150">
+          <button 
+             onClick={logout} 
+             className="w-full flex items-center text-gray-600 hover:text-red-500 cursor-pointer p-1 transition duration-150"
+          >
             <LogOut size={20} className="mr-3" />
             <span>Logout</span>
-          </div>
+          </button>
         </div>
+
+        {/* User Profile Snippet */}
+        {user && (
+          <div className="flex items-center pt-4 border-t border-gray-100 mt-4">
+            <img src={displayAvatar} alt={user.name} className="w-10 h-10 rounded-full border border-gray-200 object-cover" />
+            <div className="ml-3 overflow-hidden text-ellipsis">
+              <p className="text-sm font-semibold text-gray-800 truncate">{user.name}</p>
+              <p className="text-xs text-gray-500 truncate">{user.businessType || "User"}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

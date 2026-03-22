@@ -1,14 +1,19 @@
 import express from "express";
 import * as userController from "../controllers/userController.js";
 import { authenticate, authorizeRoles } from "../middleware/auth.js";
+import { upload } from "../config/cloudinary.js";
 
 const router = express.Router();
 
-// Public routes
+// Public auth routes
 router.post("/register", userController.register);
 router.post("/login", userController.login);
+router.post("/google", userController.googleLogin);
 
-// Protected routes
+// Protected currently logged-in user routes
+router.get("/me", authenticate, userController.getMe);
+router.put("/me", authenticate, userController.updateMe);
+router.post("/me/avatar", authenticate, upload.single("avatar"), userController.uploadAvatar);
 router.get(
   "/",
   authenticate,

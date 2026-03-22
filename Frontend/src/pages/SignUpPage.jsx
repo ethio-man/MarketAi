@@ -1,16 +1,71 @@
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react"; // Assuming you have lucide-react or similar icons
-import { Link } from "react-router-dom";
-// If you don't have lucide-react, you can install it: npm install lucide-react
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import { useAuth } from "../context/AuthContext";
 
 const SingUp = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  // Example handler, replace with actual form submission logic
-  const handleSubmit = (e) => {
+  const handleStandardAuth = async (e) => {
     e.preventDefault();
-    console.log("Sign Up clicked!");
-    // Handle form submission
+    setError(null);
+    setLoading(true);
+
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+    const name = e.target["full-name"]?.value;
+    const businessType = e.target["business-type"]?.value;
+
+    const endpoint = isLoginMode ? "/api/users/login" : "/api/users/register";
+    const payload = isLoginMode 
+        ? { email, password } 
+        : { email, password, name, businessType, role: "user" }; 
+
+    try {
+        const res = await fetch(`http://localhost:4000${endpoint}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || "Authentication failed");
+        }
+        
+        login(data.user, data.token);
+        navigate("/assistant");
+    } catch (err) {
+        setError(err.message);
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+        setError(null);
+        setLoading(true);
+        const res = await fetch("http://localhost:4000/api/users/google", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ credential: credentialResponse.credential }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || "Google auth failed");
+        
+        login(data.user, data.token);
+        navigate("/assistant");
+    } catch (err) {
+        setError(err.message);
+        setLoading(false);
+    }
   };
 
   return (
@@ -19,13 +74,13 @@ const SingUp = () => {
       <header className="px-6 py-4 flex justify-between items-center bg-white border-b border-gray-100 shadow-sm">
         <div className="text-xl font-bold text-gray-800">MarketMeda AI</div>
         <div className="text-sm text-gray-600">
-          Already have an account?{" "}
-          <a
-            href="#"
+          {isLoginMode ? "Don't have an account?" : "Already have an account?"}{" "}
+          <button
+            onClick={() => { setIsLoginMode(!isLoginMode); setError(null); }}
             className="text-blue-600 font-semibold hover:text-blue-700 transition duration-150"
           >
-            Log In
-          </a>
+            {isLoginMode ? "Sign Up" : "Log In"}
+          </button>
         </div>
       </header>
 
@@ -35,26 +90,31 @@ const SingUp = () => {
           {/* Form Header */}
           <div className="text-center mb-8">
             <h2 className="text-2xl font-semibold text-gray-900">
-              Create your Account
+              {isLoginMode ? "Welcome Back" : "Create your Account"}
             </h2>
             <p className="mt-1 text-gray-500">
               Your AI-powered marketing co-pilot.
             </p>
           </div>
 
+          {error && (
+            <div className="mb-4 bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center border border-red-200">
+               {error}
+            </div>
+          )}
+
           {/* Google Sign-in Button */}
-          <button
-            type="button"
-            className="w-full flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition duration-150"
-          >
-            <img
-              className="mr-2"
-              src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google.png"
-              alt="Google logo"
-              style={{ height: "20px" }}
+          <div className="flex justify-center w-full mb-6">
+            <GoogleLogin
+               onSuccess={handleGoogleSuccess}
+               onError={() => setError("Google auth failed. Please try again.")}
+               useOneTap
+               shape="rectangular"
+               size="large"
+               text={isLoginMode ? "signin_with" : "signup_with"}
+               width="100%"
             />
-            Continue with Google
-          </button>
+          </div>
 
           {/* OR Divider */}
           <div className="relative my-6">
@@ -70,70 +130,51 @@ const SingUp = () => {
           </div>
 
           {/* Sign Up Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name */}
-            <div>
-              <label
-                htmlFor="full-name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Full Name
-              </label>
-              <input
-                id="full-name"
-                name="full-name"
-                type="text"
-                placeholder="Enter your full name"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-gray-900"
-              />
-            </div>
+          <form onSubmit={handleStandardAuth} className="space-y-5">
+            {!isLoginMode && (
+              <>
+                {/* Full Name */}
+                <div>
+                  <label
+                    htmlFor="full-name"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Full Name
+                  </label>
+                  <input
+                    id="full-name"
+                    name="full-name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    required={!isLoginMode}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-gray-900"
+                  />
+                </div>
 
-            {/* Business Type */}
-            <div>
-              <label
-                htmlFor="business-type"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Business Type
-              </label>
-              <select
-                id="business-type"
-                name="business-type"
-                required
-                defaultValue="Retail"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-gray-900 appearance-none bg-white pr-8"
-              >
-                <option value="">Select business type</option>
-                <option value="Retail">Retail</option>
-                <option value="Service">Service</option>
-                <option value="Manufacturing">Manufacturing</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            {/* Phone Number */}
-            <div>
-              <label
-                htmlFor="phone-number"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Phone Number
-              </label>
-              <div className="flex rounded-lg shadow-sm border border-gray-300 overflow-hidden">
-                <span className="inline-flex items-center px-3 bg-gray-50 text-gray-500 text-sm">
-                  +251
-                </span>
-                <input
-                  id="phone-number"
-                  name="phone-number"
-                  type="tel"
-                  placeholder="91 234 5678"
-                  required
-                  className="flex-1 block w-full px-3 py-2 focus:ring-blue-500 focus:border-blue-500 border-none placeholder-gray-400 text-gray-900"
-                />
-              </div>
-            </div>
+                {/* Business Type */}
+                <div>
+                  <label
+                    htmlFor="business-type"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Business Type
+                  </label>
+                  <select
+                    id="business-type"
+                    name="business-type"
+                    required={!isLoginMode}
+                    defaultValue="Retail"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-gray-900 appearance-none bg-white pr-8"
+                  >
+                    <option value="">Select business type</option>
+                    <option value="Retail">Retail</option>
+                    <option value="Service">Service</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </>
+            )}
 
             {/* Email Address */}
             <div>
@@ -167,10 +208,10 @@ const SingUp = () => {
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
+                  autoComplete={isLoginMode ? "current-password" : "new-password"}
                   placeholder="Enter your password"
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-gray-900 pr-10" // pr-10 for icon space
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-gray-900 pr-10"
                 />
                 <button
                   type="button"
@@ -182,18 +223,19 @@ const SingUp = () => {
               </div>
             </div>
 
-            {/* Sign Up Button */}
-            <Link
-              to="/assistant"
-              className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 mt-6"
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 mt-6 disabled:bg-blue-400"
             >
-              Sign Up
-            </Link>
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isLoginMode ? "Log In" : "Sign Up")}
+            </button>
           </form>
 
           {/* Terms and Privacy */}
           <p className="mt-6 text-center text-xs text-gray-500">
-            By creating an account, you agree to our{" "}
+            By continuing, you agree to our{" "}
             <a href="#" className="text-blue-600 hover:underline">
               Terms of Service
             </a>{" "}

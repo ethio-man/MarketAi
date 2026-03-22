@@ -16,6 +16,8 @@ const Avatar = ({ name, imageUrl, className = "w-10 h-10" }) => (
   </div>
 );
 
+import { useAuth } from "../context/AuthContext";
+
 const formatTime = (date) =>
   new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
@@ -23,17 +25,13 @@ const formatTime = (date) =>
   }).format(date);
 
 const ChatInterface = () => {
+  const { user } = useAuth();
   const bottomRef = useRef(null);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
 
-  const user = {
-    name: "Abebe K.",
-    email: "abebe@email.com",
-    avatar:
-      "https://tse4.mm.bing.net/th/id/OIP.StC6nCSVINVtrPQOEPUF5QAAAA?cb=ucfimg2&ucfimg=1&w=300&h=359&rs=1&pid=ImgDetMain&o=7&rm=3",
-  };
+  const displayAvatar = user?.avatarUrl || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User");
 
   const ai = {
     name: "MarketMeda AI",
@@ -134,13 +132,13 @@ const ChatInterface = () => {
           </button>
           <div className="flex items-center space-x-2">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-800">{user.name}</p>
-              <p className="text-xs text-gray-500">{user.email}</p>
+              <p className="text-sm font-medium text-gray-800">{user?.name || "User"}</p>
+              <p className="text-xs text-gray-500">{user?.email || ""}</p>
             </div>
             <Avatar
-              name={user.name}
-              imageUrl={user.avatar}
-              className="w-10 h-10"
+              name={user?.name || "User"}
+              imageUrl={displayAvatar}
+              className="w-10 h-10 border border-gray-200"
             />
           </div>
         </div>
@@ -170,7 +168,7 @@ const ChatInterface = () => {
                     isUser ? "text-right" : ""
                   }`}
                 >
-                  <strong>{isUser ? user.name : ai.name}</strong>{" "}
+                  <strong>{isUser ? (user?.name || "You") : ai.name}</strong>{" "}
                   <span className="text-[10px]">{message.time}</span>
                 </div>
                 <div
@@ -186,9 +184,9 @@ const ChatInterface = () => {
 
               {isUser && (
                 <Avatar
-                  name={user.name}
-                  imageUrl={user.avatar}
-                  className="w-8 h-8 ml-3"
+                  name={user?.name || "You"}
+                  imageUrl={displayAvatar}
+                  className="w-8 h-8 ml-3 border border-gray-200"
                 />
               )}
             </div>
