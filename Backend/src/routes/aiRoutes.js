@@ -30,4 +30,7 @@ router.delete(
 //caption generaltion
 router.post("/caption", aiController.generateCaption);
 
+// image generation
+router.post("/image", aiController.generateImage);
+
 export default router;

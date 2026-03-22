@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -23,6 +23,22 @@ const CampaignBuilder = () => {
   const [language, setLanguage] = useState("English");
   const [tone, setTone] = useState("Persuasive");
   const [caption, setCaption] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const captionRef = useRef(null);
+
+  const resizeCaptionArea = () => {
+    if (!captionRef.current) return;
+    captionRef.current.style.height = "auto";
+    captionRef.current.style.height = `${captionRef.current.scrollHeight}px`;
+  };
+
+  useEffect(() => {
+    resizeCaptionArea();
+  }, [caption]);
 
   const LanguageButton = ({ lang }) => (
     <button
@@ -37,37 +53,54 @@ const CampaignBuilder = () => {
     </button>
   );
   const sendMessage = async () => {
-    const question = {
+    if (!product.trim() || !brand.trim()) {
+      setError("Please provide both product and brand.");
+      return;
+    }
+
+    const payloadBody = {
       product_name: product,
       brand,
       caption_language: language,
       tone,
     };
 
-    if (!question || isSending) return;
+    if (isSending || isGeneratingImage) return;
 
     setError("");
+    setImageError("");
     setIsSending(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/ai/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
+    setIsGeneratingImage(true);
 
+    const captionPromise = fetch(`${API_BASE_URL}/api/ai/caption`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payloadBody),
+    }).then(async res => {
       const payload = await res.json();
-
-      if (!res.ok || !payload?.success) {
-        throw new Error(payload?.error || "Failed to get assistant response.");
-      }
-      const cap =
-        payload.answer || "I could not generate a response right now.";
-      setCaption(cap);
-    } catch (err) {
+      if (!res.ok || !payload?.success) throw new Error(payload?.error || "Failed to get assistant response.");
+      setCaption(payload.answer || "I could not generate a response right now.");
+    }).catch(err => {
       setError(err.message || "Unable to connect to AI service.");
-    } finally {
+    }).finally(() => {
       setIsSending(false);
-    }
+    });
+
+    const imagePromise = fetch(`${API_BASE_URL}/api/ai/image`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product_name: product, brand, tone }),
+    }).then(async res => {
+      const payload = await res.json();
+      if (!res.ok || !payload?.success) throw new Error(payload?.error || "Failed to generate image.");
+      setImageUrl(payload.imageUrl);
+    }).catch(err => {
+      setImageError(err.message || "Unable to connect to AI Image service.");
+    }).finally(() => {
+      setIsGeneratingImage(false);
+    });
+
+    await Promise.all([captionPromise, imagePromise]);
   };
   const ToneButton = ({ t }) => (
     <button
@@ -103,9 +136,26 @@ const CampaignBuilder = () => {
                 Choose a product to promote
               </label>
               <div className="relative">
-                <input className="w-full p-3 border border-gray-300 rounded-lg appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input
+                  value={product}
+                  onChange={(e) => setProduct(e.target.value)}
+                  placeholder="e.g. Arabica Coffee Beans"
+                  className="w-full p-3 border border-gray-300 rounded-lg appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"></div>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">
+                Brand Name
+              </label>
+              <input
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                placeholder="e.g. Abebe Coffee"
+                className="w-full p-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
 
             {/* Language Selection */}
@@ -134,12 +184,18 @@ const CampaignBuilder = () => {
             </div>
           </div>
 
-          <button className="mt-8 w-full flex items-center justify-center p-3 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-500/50">
-            <span className="mr-2">✨</span> Generate Post
+          {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
+
+          <button
+            onClick={sendMessage}
+            disabled={isSending || isGeneratingImage}
+            className="mt-8 w-full flex items-center justify-center p-3 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-lg shadow-blue-500/50 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <span className="mr-2">✨</span>
+            {(isSending || isGeneratingImage) ? "Generating..." : "Generate Post"}
           </button>
         </div>
 
-        {/* --- 2. Review Your AI-Generated Post (Right Panel) --- */}
         <div className="w-1/2 space-y-6">
           {/* Caption and Hashtags Card */}
           <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
@@ -151,22 +207,33 @@ const CampaignBuilder = () => {
             <div className="flex justify-between items-center mb-4">
               <p className="font-medium text-gray-600">Generated Caption</p>
               <div className="text-sm space-x-3">
-                <button className="text-blue-500 hover:text-blue-600 font-medium">
+                <button
+                  onClick={() => navigator.clipboard?.writeText(caption || "")}
+                  className="text-blue-500 hover:text-blue-600 font-medium"
+                >
                   Copy
                 </button>
-                <button className="text-blue-500 hover:text-blue-600 font-medium">
+                <button
+                  onClick={sendMessage}
+                  className="text-blue-500 hover:text-blue-600 font-medium"
+                >
                   Regenerate
                 </button>
               </div>
             </div>
 
             {/* Caption Text Area */}
-            <div className="text-gray-800 leading-relaxed bg-blue-50 p-4 rounded-lg border border-blue-200">
-              Experience the authentic taste of Ethiopia with our premium
-              **Sidamo coffee beans**. Sourced directly from local farmers, each
-              cup offers a rich, aromatic journey. Perfect for your morning
-              ritual. Order now and elevate your coffee experience! ✨☕
-            </div>
+            <textarea
+              ref={captionRef}
+              value={caption}
+              onChange={(e) => {
+                setCaption(e.target.value);
+                resizeCaptionArea();
+              }}
+              placeholder="Your generated caption will appear here..."
+              rows={1}
+              className="w-full min-h-36 overflow-hidden resize-none text-gray-800 leading-relaxed bg-blue-50 p-4 rounded-lg border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
 
             {/* Hashtags */}
             <p className="mt-6 font-medium text-gray-600 mb-3">
@@ -184,14 +251,24 @@ const CampaignBuilder = () => {
           {/* Generated Image Card */}
           <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
             <p className="font-medium text-gray-600 mb-3">Generated Image</p>
+            {imageError && <p className="mb-3 text-sm text-red-600">{imageError}</p>}
             <div className="relative w-full h-80 rounded-lg overflow-hidden border border-gray-300">
-              {/* Placeholder for the image */}
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
-                <img
-                  src="https://png.pngtree.com/png-clipart/20231110/original/pngtree-splash-cup-of-coffee-with-and-beans-on-a-plain-white-png-image_13524854.png"
-                  alt=""
-                />
-              </div>
+              {isGeneratingImage ? (
+                <div className="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-blue-500">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                  <p className="font-medium">Generating image...</p>
+                </div>
+              ) : imageUrl ? (
+                <img src={imageUrl} alt="Generated Advertisement" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+                  <img
+                    src="https://png.pngtree.com/png-clipart/20231110/original/pngtree-splash-cup-of-coffee-with-and-beans-on-a-plain-white-png-image_13524854.png"
+                    alt=""
+                    className="w-full h-full object-cover opacity-50"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>
