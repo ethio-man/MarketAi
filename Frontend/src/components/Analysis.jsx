@@ -25,8 +25,6 @@ const ProgressBar = ({ label, value, colorClass }) => (
   </div>
 );
 
-// --- Main Dashboard Component ---
-
 const Dashboard = () => {
   return (
     <div className="flex-1 min-h-screen bg-gray-50 p-4 md:p-8 overflow-y-auto">
@@ -56,7 +54,6 @@ const Dashboard = () => {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Top Trending Product Categories Card */}
         <Card
           title={
             <>
@@ -86,7 +83,6 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Competitor Snapshot Card */}
         <Card
           title={
             <>
