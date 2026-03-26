@@ -1,4 +1,4 @@
-const apiKey = "AIzaSyCFDXSx91O8p6liPIZdNWEh2Quf6aS1Z9E";
+const apiKey = "";
 const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict`;
 
 async function testGeminiImage() {
