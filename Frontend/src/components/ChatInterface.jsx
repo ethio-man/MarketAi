@@ -3,7 +3,6 @@ import { Send, User } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-// Mock Component for user avatar
 const Avatar = ({ name, imageUrl, className = "w-10 h-10" }) => (
   <div
     className={`rounded-full bg-gray-200 flex items-center justify-center ${className}`}
@@ -31,7 +30,10 @@ const ChatInterface = () => {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
 
-  const displayAvatar = user?.avatarUrl || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User");
+  const displayAvatar =
+    user?.avatarUrl ||
+    "https://ui-avatars.com/api/?name=" +
+      encodeURIComponent(user?.name || "User");
 
   const ai = {
     name: "MarketMeda AI",
@@ -132,7 +134,9 @@ const ChatInterface = () => {
           </button>
           <div className="flex items-center space-x-2">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-800">{user?.name || "User"}</p>
+              <p className="text-sm font-medium text-gray-800">
+                {user?.name || "User"}
+              </p>
               <p className="text-xs text-gray-500">{user?.email || ""}</p>
             </div>
             <Avatar
@@ -168,7 +172,7 @@ const ChatInterface = () => {
                     isUser ? "text-right" : ""
                   }`}
                 >
-                  <strong>{isUser ? (user?.name || "You") : ai.name}</strong>{" "}
+                  <strong>{isUser ? user?.name || "You" : ai.name}</strong>{" "}
                   <span className="text-[10px]">{message.time}</span>
                 </div>
                 <div
@@ -214,7 +218,6 @@ const ChatInterface = () => {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input / Footer Section */}
       <div className="p-4 bg-white border-t border-gray-200">
         {/* Quick Actions Buttons */}
         <div className="flex flex-wrap gap-3 mb-4">
@@ -230,7 +233,7 @@ const ChatInterface = () => {
           ))}
         </div>
 
-        {/* Input Bar */}
+        {/* Input Bar  */}
         <div className="flex items-center border border-gray-300 rounded-full bg-white shadow-sm">
           <input
             type="text"
