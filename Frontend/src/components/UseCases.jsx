@@ -11,34 +11,34 @@ import {
 const features = [
   {
     name: "AI Social Media Post",
-    description: "Create engaging social media content in seconds.",
+    description: "Launch targeted campaigns instantly using AI content generation.",
     icon: Pencil,
   },
   {
-    name: "Multilingual Captions",
+    name: "Multilingual Campaigns",
     description:
-      "Generate captions in Amharic, Afaan Oromo, Tigrinya, and English.",
+      "Generate campaigns in Amharic, Afaan Oromo, Tigrinya, and English.",
     icon: Languages,
   },
   {
-    name: "AI Image Generation",
+    name: "AI Marketing Visuals",
     description:
-      "Enhance your posts with AI-created visuals tailored to your brand.",
+      "Enhance your campaigns with AI-created visuals tailored to your brand.",
     icon: ImageIcon,
   },
   {
-    name: "Market-Trend Insights",
-    description: "Stay ahead with AI-powered analysis of local market trends.",
+    name: "Assistant Market Insights",
+    description: "Ask the AI assistant for analysis of local market trends.",
     icon: TrendingUp,
   },
   {
-    name: "Product Analytics",
-    description: "Understand which of your products are performing best.",
+    name: "Real-Time Product Analytics",
+    description: "Deeply understand which of your products are performing best.",
     icon: BarChart,
   },
   {
-    name: "Demand Prediction",
-    description: "Forecast customer demand to optimize your inventory.",
+    name: "Analytics Demand Prediction",
+    description: "Forecast customer demand based on data to optimize your inventory.",
     icon: Activity,
   },
 ];

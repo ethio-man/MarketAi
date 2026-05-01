@@ -16,40 +16,34 @@ const NavBar = () => {
 
           {/* Center Links (Desktop only) */}
           <div className="hidden md:flex space-x-10">
-            <a
-              href="#"
+            <Link
+              to="/"
               className="text-eesel-dark hover:text-gray-500 font-medium transition duration-150 ease-in-out text-sm"
             >
-              Agents
-            </a>
-            <a
-              href="#"
+              Home
+            </Link>
+            <Link
+              to="/ai-assistant"
               className="text-eesel-dark hover:text-gray-500 font-medium transition duration-150 ease-in-out text-sm"
             >
-              Integrations
-            </a>
-            <a
-              href="#"
+              Assistant
+            </Link>
+            <Link
+              to="/analytics-overview"
               className="text-eesel-dark hover:text-gray-500 font-medium transition duration-150 ease-in-out text-sm"
             >
-              Pricing
-            </a>
-            <a
-              href="#"
+              Analytics
+            </Link>
+            <Link
+              to="/campaigns-overview"
               className="text-eesel-dark hover:text-gray-500 font-medium transition duration-150 ease-in-out text-sm"
             >
-              Customers
-            </a>
+              Campaigns
+            </Link>
           </div>
 
           {/* Right side CTAs */}
           <div className="flex items-center space-x-4">
-            <a
-              href="#"
-              className="hidden sm:inline-flex text-eesel-dark hover:text-gray-500 font-medium transition text-sm"
-            >
-              Book a demo
-            </a>
             <Link
               to="/login"
               className="hidden sm:inline-flex text-eesel-dark hover:text-gray-500 font-medium transition text-sm"

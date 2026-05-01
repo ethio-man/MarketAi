@@ -5,7 +5,7 @@ const targetAudiences = [
   {
     name: "Fashion & Apparel",
     description:
-      "AI-generated captions for new clothing lines, trend analysis, and multilingual ads.",
+      "Use the AI Assistant for trend analysis, view sales Analytics, and launch multilingual Campaigns.",
     icon: Shirt,
     bgColor: "bg-orange-50",
     iconColor: "text-orange-600",
@@ -13,7 +13,7 @@ const targetAudiences = [
   {
     name: "Restaurants & Food",
     description:
-      "Create engaging social media posts for daily specials and analyze dining trends.",
+      "Create engaging social media Campaigns for daily specials and analyze dining trends.",
     icon: Utensils,
     bgColor: "bg-green-50",
     iconColor: "text-green-600",
@@ -21,7 +21,7 @@ const targetAudiences = [
   {
     name: "Creative Agencies",
     description:
-      "Rapidly generate AI visuals and multilingual content ideas for clients.",
+      "Rapidly generate AI visuals and multilingual content ideas for clients using the Assistant.",
     icon: Palette,
     bgColor: "bg-blue-50",
     iconColor: "text-blue-600",
@@ -29,7 +29,7 @@ const targetAudiences = [
   {
     name: "Educational Services",
     description:
-      "Promote courses and programs with targeted ads and forecast enrollment demand.",
+      "Launch targeted Campaigns to promote courses and forecast enrollment demand with Analytics.",
     icon: GraduationCap,
     bgColor: "bg-purple-50",
     iconColor: "text-purple-600",

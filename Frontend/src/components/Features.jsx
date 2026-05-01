@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 
 export default function Features() {
   const features = [
-    { title: "AI-Powered Marketing", icon: Sparkles },
-    { title: "Smart Customer Insights", icon: Users },
-    { title: "Business Data Dashboard", icon: LayoutDashboard },
+    { title: "Intelligent AI Assistant", icon: Sparkles, desc: "Automate customer interactions and get instant marketing guidance." },
+    { title: "Real-Time Analytics", icon: LayoutDashboard, desc: "Deeply understand your business data, product performance, and customer trends." },
+    { title: "Dynamic Campaigns", icon: Users, desc: "Launch AI-generated, multilingual social media campaigns instantly." },
   ];
 
   return (
@@ -36,7 +36,7 @@ export default function Features() {
               {f.title}
             </h3>
             <p className="text-gray-600/90 leading-relaxed">
-              Automate tasks and unlock growth potential effortlessly.
+              {f.desc}
             </p>
           </motion.div>
         ))}

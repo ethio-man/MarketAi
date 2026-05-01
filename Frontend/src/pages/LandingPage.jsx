@@ -15,7 +15,7 @@ export default function Landing() {
       <Features />
       <UseCases />
       <TargetAudienceSection />
-      <AnalyticsPreview embedUrl="https://valiotti.com/wp-content/uploads/2024/01/screen-looker-studio.png" />
+      <AnalyticsPreview imageUrl="/marketmeda-action.png" />
       <Footer />
     </div>
   );

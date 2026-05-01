@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
@@ -72,7 +72,12 @@ const SingUp = () => {
     <div className="min-h-screen flex flex-col">
       {/* 🚀 Header Section */}
       <header className="px-6 py-4 flex justify-between items-center bg-white border-b border-gray-100 shadow-sm">
-        <div className="text-xl font-bold text-gray-800">MarketMeda AI</div>
+        <div className="flex items-center space-x-4">
+          <Link to="/" className="text-gray-500 hover:text-gray-800 transition duration-150" aria-label="Go back">
+            <ArrowLeft size={24} />
+          </Link>
+          <div className="text-xl font-bold text-gray-800">MarketMeda AI</div>
+        </div>
         <div className="text-sm text-gray-600">
           {isLoginMode ? "Don't have an account?" : "Already have an account?"}{" "}
           <button
