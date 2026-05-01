@@ -15,7 +15,7 @@ export default function Landing() {
       <Features />
       <UseCases />
       <TargetAudienceSection />
-      <AnalyticsPreview imageUrl="/marketmeda-action.png" />
+      <AnalyticsPreview imageUrl="/insights.png" />
       <Footer />
     </div>
   );
