@@ -10,31 +10,33 @@ export default function Features() {
   ];
 
   return (
-    <section className="container mx-auto px-6 py-20">
-      <h2 className="text-3xl font-bold text-darkblue mb-12 text-center">
-        The All-in-One AI Platform for Your Business Growth
+    <section className="container mx-auto px-6 py-24 sm:py-32">
+      <h2 className="text-4xl sm:text-5xl font-extrabold text-eesel-dark mb-6 text-center tracking-tight">
+        The All-in-One AI Platform
       </h2>
-      <p className="mt-3 text-center mx-auto text-lg text-gray-600/50 sm:text-xl lg:mx-0 mb-8">
+      <p className="mt-3 text-center mx-auto max-w-2xl text-lg sm:text-xl text-gray-600/90 mb-16">
         Our platform provides you with the tools to automate marketing,
         understand your customers deeply, and monitor your business performance
         from one central dashboard.
       </p>
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-8">
         {features.map((f, i) => (
           <motion.div
             key={i}
-            className="bg-white rounded-xl shadow-lg p-6 text-center hover:scale-105 transition"
-            initial={{ y: 50, opacity: 0 }}
+            className="rounded-2xl p-8 text-center border border-eesel-accent/50 bg-white/50 hover:bg-white transition duration-300"
+            initial={{ y: 20, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ delay: i * 0.2, duration: 0.8 }}
+            transition={{ delay: i * 0.1, duration: 0.5 }}
           >
-            <f.icon className="text-amber-600 " />
-            <h3 className="text-lg font-bold leading-tight mb-2 text-blue-900">
+            <div className="inline-flex items-center justify-center p-3 bg-eesel-dark rounded-full mb-6 text-white">
+              <f.icon className="w-6 h-6" strokeWidth={2} />
+            </div>
+            <h3 className="text-xl font-bold leading-tight mb-3 text-eesel-dark tracking-tight">
               {f.title}
             </h3>
-            <p className="text-gray-600">
-              Lorem ipsum placeholder description for {f.title}.
+            <p className="text-gray-600/90 leading-relaxed">
+              Automate tasks and unlock growth potential effortlessly.
             </p>
           </motion.div>
         ))}

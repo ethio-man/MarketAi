@@ -4,4 +4,5 @@
 
 body {
   font-family: "Inter", sans-serif;
+  @apply bg-eesel-light text-eesel-dark antialiased;
 }

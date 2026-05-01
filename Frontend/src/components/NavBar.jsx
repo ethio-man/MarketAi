@@ -3,50 +3,64 @@ import { Link } from "react-router-dom";
 
 const NavBar = () => {
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-eesel-light sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
+          {/* Logo Section */}
           <div className="flex-shrink-0 flex items-center">
-            <svg
-              className="h-6 w-6 text-blue-500 mr-2"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              />{" "}
-            </svg>
-
-            <span className="text-xl font-semibold text-gray-900">
-              MarketMeda <span className="font-normal">AI</span>
+            {/* Kept a minimal logo look */}
+            <span className="text-2xl font-bold text-eesel-dark tracking-tight">
+              MarketMeda <span className="font-medium text-gray-500">AI</span>
             </span>
           </div>
-          <div className="flex items-center space-x-6">
-            <div className="hidden md:flex space-x-8">
-              <a
-                href="#"
-                className="text-gray-600 hover:text-gray-900 font-medium transition duration-150 ease-in-out"
-              >
-                Features
-              </a>
-              <a
-                href="#"
-                className="text-gray-600 hover:text-gray-900 font-medium transition duration-150 ease-in-out"
-              >
-                Use Cases
-              </a>
-            </div>
+
+          {/* Center Links (Desktop only) */}
+          <div className="hidden md:flex space-x-10">
+            <a
+              href="#"
+              className="text-eesel-dark hover:text-gray-500 font-medium transition duration-150 ease-in-out text-sm"
+            >
+              Agents
+            </a>
+            <a
+              href="#"
+              className="text-eesel-dark hover:text-gray-500 font-medium transition duration-150 ease-in-out text-sm"
+            >
+              Integrations
+            </a>
+            <a
+              href="#"
+              className="text-eesel-dark hover:text-gray-500 font-medium transition duration-150 ease-in-out text-sm"
+            >
+              Pricing
+            </a>
+            <a
+              href="#"
+              className="text-eesel-dark hover:text-gray-500 font-medium transition duration-150 ease-in-out text-sm"
+            >
+              Customers
+            </a>
+          </div>
+
+          {/* Right side CTAs */}
+          <div className="flex items-center space-x-4">
+            <a
+              href="#"
+              className="hidden sm:inline-flex text-eesel-dark hover:text-gray-500 font-medium transition text-sm"
+            >
+              Book a demo
+            </a>
             <Link
               to="/login"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+              className="hidden sm:inline-flex text-eesel-dark hover:text-gray-500 font-medium transition text-sm"
             >
-              Get Started
+              Log in
+            </Link>
+            <Link
+              to="/login"
+              className="inline-flex items-center px-5 py-2 border border-transparent text-sm font-medium rounded-full shadow-sm text-white bg-eesel-dark hover:bg-gray-800 transition duration-150 ease-in-out"
+            >
+              Get started
             </Link>
           </div>
         </div>

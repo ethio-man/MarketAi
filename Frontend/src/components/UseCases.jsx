@@ -1,5 +1,4 @@
 import React from "react";
-// Import necessary icons from Lucide React
 import {
   Pencil,
   Languages,
@@ -9,10 +8,9 @@ import {
   Activity,
 } from "lucide-react";
 
-// Array of feature objects to map over and keep the component clean
 const features = [
   {
-    name: "AI Social Media Post Generation",
+    name: "AI Social Media Post",
     description: "Create engaging social media content in seconds.",
     icon: Pencil,
   },
@@ -41,39 +39,36 @@ const features = [
   {
     name: "Demand Prediction",
     description: "Forecast customer demand to optimize your inventory.",
-    icon: Activity, // Using Activity icon for prediction/motion
+    icon: Activity,
   },
 ];
 
 const FeaturesSection = () => {
   return (
-    // Outer container with padding and light background (matching the image)
-    <section className="bg-gray-50 py-16 sm:py-24 lg:py-32">
+    <section className="py-24 sm:py-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main Heading */}
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900">
-            Powerful Features to Supercharge Your Marketing
+        <div className="text-center mb-20">
+          <h2 className="text-4xl sm:text-5xl font-extrabold text-eesel-dark tracking-tight">
+            Features to Supercharge Growth
           </h2>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-12 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <div key={index} className="flex flex-col text-left">
+            <div key={index} className="flex flex-col text-left group">
               <div className="flex items-start">
-                {/* Icon Container: Blue icon with custom size */}
-                <feature.icon
-                  className="flex-shrink-0 h-6 w-6 text-blue-500 mr-3 mt-1"
-                  aria-hidden="true"
-                />
-
-                {/* Feature Content */}
+                <div className="flex-shrink-0 mt-1">
+                  <feature.icon
+                    className="h-6 w-6 text-eesel-dark/80 group-hover:text-eesel-dark transition-colors duration-200 mr-4"
+                    aria-hidden="true"
+                    strokeWidth={2}
+                  />
+                </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-bold text-eesel-dark tracking-tight">
                     {feature.name}
                   </h3>
-                  <p className="mt-1 text-base text-gray-600">
+                  <p className="mt-2 text-base text-gray-600/90 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
