@@ -1,3 +1,4 @@
+//test code
 async function test() {
   const url1 = "https://image.pollinations.ai/prompt/coffee?model=flux";
   console.log("Testing:", url1);
