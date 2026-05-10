@@ -1,4 +1,4 @@
-// src/controllers/aiController.js
+
 import * as aiService from "../services/aiService.js";
 
 // POST /api/chat - User asks the AI assistant a question
