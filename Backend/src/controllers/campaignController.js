@@ -1,4 +1,4 @@
-// src/controllers/campaignController.js
+
 import * as campaignService from "../services/campaignService.js";
 
 export const getCampaigns = async (req, res, next) => {
