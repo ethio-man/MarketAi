@@ -1,7 +1,5 @@
-
 import * as aiService from "../services/aiService.js";
 
-// POST /api/chat - User asks the AI assistant a question
 export const askAssistant = async (req, res, next) => {
   try {
     const { question } = req.body;
